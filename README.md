@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Convert Validation Report
-        uses: patrick-werner/convert-validation-report@1.0.0
+        uses: patrick-werner/fhir-html-validation-to-markdown@1.0.0-alpha1
         with:
           input_file: './path/to/validation.html'
 ```
