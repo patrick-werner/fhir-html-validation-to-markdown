@@ -20,19 +20,6 @@ runs:
     - name: Process HTML and Convert to Markdown
       shell: bash
       run: |
-        # Extract file name from input path
-        file_name=$(basename "${{ inputs.input_file }}")
-
-        # Get branch name from GitHub Actions environment variable
-        branch_name="${{ github.ref_name }}"
-
-        # Construct GitHub URL (assuming repo is on GitHub)
-        repo_url="https://github.com/${{ github.repository }}/blob/${branch_name}/${{ inputs.input_file }}"
-
-        # Add Markdown link at the top with branch-specific URL
-        echo "[📄 View Validation Report](${repo_url})" > temp_output.md
-        echo "" >> temp_output.md  # Empty line for formatting
-
         # Process the HTML file, remove the first table, and convert to Markdown
         awk '
           BEGIN {skip=0; table_removed=0}
@@ -68,8 +55,4 @@ runs:
           /Slicing Information/ {gsub("Slicing Information", "✂️ Slicing Info")}
 
           {print}
-        ' >> temp_output.md
-
-        # Append the processed Markdown to GitHub Summary
-        cat temp_output.md >> $GITHUB_STEP_SUMMARY
-        rm temp_output.md  # Clean up temporary file
+        ' >> $GITHUB_STEP_SUMMARY
