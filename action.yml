@@ -1,0 +1,66 @@
+name: 'Convert Validation Report to Markdown'
+description: 'Removes the first table from an HTML file, converts it to Markdown, and formats it for GitHub Actions summary.'
+author: 'Your Name'
+
+inputs:
+  input_file:
+    description: 'Path to the validation HTML file'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Pandoc
+      shell: bash
+      run: sudo apt-get install -y pandoc
+
+    - name: Process HTML and Convert to Markdown
+      shell: bash
+      run: |
+        # Extract file name from input path
+        file_name=$(basename "${{ inputs.input_file }}")
+
+        # Add Markdown link at the top
+        echo "[📄 View Validation Report](${file_name})" > temp_output.md
+        echo "" >> temp_output.md  # Empty line for formatting
+
+        # Process the HTML file, remove the first table, and convert to Markdown
+        awk '
+          BEGIN {skip=0; table_removed=0}
+
+          /<table class="grid">/ {
+              if (table_removed == 0) {
+                  skip=1
+                  next
+              }
+          }
+
+          skip && /<\/table>/ {
+              if (table_removed == 0) {
+                  skip=0
+                  table_removed=1
+                  next
+              }
+          }
+
+          skip {next}
+
+          {print}
+        ' "${{ inputs.input_file }}" | pandoc -f html -t markdown_strict | awk '
+          /^## / {gsub(/^## /, "#### ")}
+
+          {gsub(/<strong>/, ""); gsub(/<\/strong>/, "")}  
+
+          /error/ {gsub("error", "❌ error")}
+          /warning/ {gsub("warning", "⚠️ warning")}
+          /information/ {gsub("information", "ℹ️ information")}
+          /hint/ {gsub("hint", "ℹ️ hint")}
+          /Process Info/ {gsub("Process Info", "🔹 Process Info")}
+          /Slicing Information/ {gsub("Slicing Information", "✂️ Slicing Info")}
+
+          {print}
+        ' >> temp_output.md
+
+        # Append the processed Markdown to GitHub Summary
+        cat temp_output.md >> $GITHUB_STEP_SUMMARY
+        rm temp_output.md  # Clean up temporary file
