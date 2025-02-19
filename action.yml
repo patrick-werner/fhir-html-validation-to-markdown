@@ -1,6 +1,9 @@
 name: 'Convert Validation Report to Markdown'
 description: 'Removes the first table from an HTML file, converts it to Markdown, and formats it for GitHub Actions summary.'
-author: 'Your Name'
+author: 'Patrick Werner <pa.f.werner@gmail.com>'
+branding:
+  icon: 'info'
+  color: 'blue'
 
 inputs:
   input_file:
